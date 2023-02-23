@@ -13,6 +13,7 @@ import './App.scss'
 
 /* Types */
 interface USState {
+    // Enabling use of strings as keys
     [key: string]: string | number
     'Household Income': number
     'ID State': number
@@ -51,15 +52,24 @@ const App = () => {
 
     useEffect(() => {
         const updateUSStatesWithGrowth = (data: USState[]) => {
+            // Get previous year's (minding selected growth period) data
             const previousYearData = data.filter(
                 (USState) => USState.Year === `${parseInt(selectedYear) - parseInt(selectedPeriod)}`
             )
 
             return data.map((USState) => {
+                /**
+                 * Get previous year's Property Value for current USState in iteration
+                 * If Property Value does not exist, then we use 0
+                 * It is not perfect, since we might want to throw some error in this case
+                 * but for specified requirements and data it will do okay
+                 */
                 const previousYearValue =
                     previousYearData.find(
                         (USStatePrevYear) => USStatePrevYear['ID State'] === USState['ID State']
                     )?.['Property Value'] || 0
+
+                // Calculate growth rate
                 const growthRate =
                     (USState['Property Value'] - previousYearValue) / previousYearValue
 
@@ -71,8 +81,10 @@ const App = () => {
         }
 
         const fetchUSStates = async () => {
+            // Let user know something's happening
             setIsLoading(true)
 
+            // Fetch data using variables to get exactly what we need
             const response = await fetch(
                 `${dataUSAUrl}?drilldowns=State&measures=${measures.join(
                     ','
@@ -82,6 +94,8 @@ const App = () => {
             const data = updateUSStatesWithGrowth(json.data)
 
             setUSStates(data)
+
+            // Display results
             setIsLoading(false)
         }
 
@@ -155,23 +169,25 @@ const App = () => {
             <div className='results'>
                 <Container>
                     {isLoading ? (
+                        // Simple loading indicator
                         <span>Loading...</span>
                     ) : USStates.length ? (
                         <Row as='ul' xs={1} sm={2}>
-                            {USStates.filter((data) => data.Year === selectedYear)
+                            {USStates.filter((USState) => USState.Year === selectedYear)
                                 .sort((a, b) => b.growthRate - a.growthRate)
-                                .map((data) => (
-                                    <Col as='li' key={data['ID State']}>
+                                .map((USState) => (
+                                    <Col as='li' key={USState['ID State']}>
                                         <div className='state'>
                                             <div className='state__body'>
                                                 <h2 className='state__name'>
-                                                    <strong>{data.State}</strong>
+                                                    <strong>{USState.State}</strong>
                                                 </h2>
                                                 <div className='state__growth'>
                                                     <small>
                                                         <em>
-                                                            {(data.growthRate * 100).toFixed(2)}%
-                                                            Growth
+                                                            {`${(USState.growthRate * 100).toFixed(
+                                                                2
+                                                            )}% Growth`}
                                                         </em>
                                                     </small>
                                                 </div>
@@ -179,7 +195,7 @@ const App = () => {
                                             <div className='state__measure'>
                                                 <h3 style={{ margin: 0 }}>
                                                     {selectedMeasure !== 'Population' && '$'}
-                                                    {data[selectedMeasure]}
+                                                    {USState[selectedMeasure]}
                                                 </h3>
                                             </div>
                                         </div>
@@ -187,6 +203,7 @@ const App = () => {
                                 ))}
                         </Row>
                     ) : (
+                        // If we select 2015 and 3 year period, data does not exist, so we throw error
                         <span>
                             Either something went wrong or we can not provide the data that far back
                         </span>
