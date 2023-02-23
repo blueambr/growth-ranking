@@ -11,7 +11,9 @@ import Row from 'react-bootstrap/Row'
 /* Styles */
 import './App.scss'
 
-interface PropertyData {
+/* Types */
+interface USState {
+    [key: string]: string | number
     'Household Income': number
     'ID State': number
     Population: number
@@ -19,15 +21,13 @@ interface PropertyData {
     State: string
     Year: string
     growthRate: number
-    [key: string]: string | number
 }
 
-interface ApiResponse {
-    data: PropertyData[]
+interface dataUSA {
+    data: USState[]
 }
 
-const apiUrl = 'https://datausa.io/api/data'
-
+const dataUSAUrl = 'https://datausa.io/api/data'
 const years = ['2019', '2018', '2017', '2016', '2015']
 const measures = ['Property Value', 'Household Income', 'Population']
 const periods = ['1', '2', '3']
@@ -36,60 +36,56 @@ const App = () => {
     const [selectedYear, setSelectedYear] = useState<string>(years[0])
     const [selectedMeasure, setSelectedMeasure] = useState<string>(measures[0])
     const [selectedPeriod, setSelectedPeriod] = useState<string>(periods[0])
-    const [propertyData, setPropertyData] = useState<PropertyData[]>([])
+    const [USStates, setUSStates] = useState<USState[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     const handleYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedYear(event.target.value)
     }
-
     const handleMeasureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedMeasure(event.target.value)
     }
-
     const handlePeriodChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedPeriod(event.target.value)
     }
 
     useEffect(() => {
-        setIsLoading(true)
-
-        const calculateYoYGrowth = (data: PropertyData[]) => {
+        const updateUSStatesWithGrowth = (data: USState[]) => {
             const previousYearData = data.filter(
-                (d) => d.Year === `${parseInt(selectedYear) - parseInt(selectedPeriod)}`
+                (USState) => USState.Year === `${parseInt(selectedYear) - parseInt(selectedPeriod)}`
             )
 
-            return data.map((d) => {
-                const previousValue =
-                    previousYearData.find((pd) => pd['ID State'] === d['ID State'])?.[
-                        'Property Value'
-                    ] || 0
-                const growthRate = (d['Property Value'] - previousValue) / previousValue
+            return data.map((USState) => {
+                const previousYearValue =
+                    previousYearData.find(
+                        (USStatePrevYear) => USStatePrevYear['ID State'] === USState['ID State']
+                    )?.['Property Value'] || 0
+                const growthRate =
+                    (USState['Property Value'] - previousYearValue) / previousYearValue
 
                 return {
-                    ...d,
+                    ...USState,
                     growthRate,
                 }
             })
         }
 
-        const fetchData = async () => {
+        const fetchUSStates = async () => {
+            setIsLoading(true)
+
             const response = await fetch(
-                `${apiUrl}?drilldowns=State&measures=${measures.join(',')}&year=${selectedYear},${
-                    parseInt(selectedYear) - parseInt(selectedPeriod)
-                }`
+                `${dataUSAUrl}?drilldowns=State&measures=${measures.join(
+                    ','
+                )}&year=${selectedYear},${parseInt(selectedYear) - parseInt(selectedPeriod)}`
             )
-            const json: ApiResponse = await response.json()
+            const json: dataUSA = await response.json()
+            const data = updateUSStatesWithGrowth(json.data)
 
-            console.log(json.data)
-
-            const data = calculateYoYGrowth(json.data)
-
-            setPropertyData(data)
+            setUSStates(data)
             setIsLoading(false)
         }
 
-        fetchData()
+        fetchUSStates()
     }, [selectedYear, selectedMeasure, selectedPeriod])
 
     return (
@@ -106,8 +102,9 @@ const App = () => {
                         <Row>
                             <Col>
                                 <Form.Group>
-                                    <Form.Label>Year</Form.Label>
+                                    <Form.Label htmlFor='selectYear'>Year</Form.Label>
                                     <Form.Control
+                                        id='selectYear'
                                         as='select'
                                         value={selectedYear}
                                         onChange={handleYearChange}>
@@ -121,8 +118,9 @@ const App = () => {
                             </Col>
                             <Col>
                                 <Form.Group>
-                                    <Form.Label>Measure</Form.Label>
+                                    <Form.Label htmlFor='selectMeasure'>Measure</Form.Label>
                                     <Form.Control
+                                        id='selectMeasure'
                                         as='select'
                                         value={selectedMeasure}
                                         onChange={handleMeasureChange}>
@@ -136,8 +134,9 @@ const App = () => {
                             </Col>
                             <Col>
                                 <Form.Group>
-                                    <Form.Label>Growth Period</Form.Label>
+                                    <Form.Label htmlFor='selectPeriod'>Growth Period</Form.Label>
                                     <Form.Control
+                                        id='selectPeriod'
                                         as='select'
                                         value={selectedPeriod}
                                         onChange={handlePeriodChange}>
@@ -157,10 +156,9 @@ const App = () => {
                 <Container>
                     {isLoading ? (
                         <span>Loading...</span>
-                    ) : propertyData.length ? (
+                    ) : USStates.length ? (
                         <Row as='ul' xs={1} sm={2}>
-                            {propertyData
-                                .filter((data) => data.Year === selectedYear)
+                            {USStates.filter((data) => data.Year === selectedYear)
                                 .sort((a, b) => b.growthRate - a.growthRate)
                                 .map((data) => (
                                     <Col as='li' key={data['ID State']}>
