@@ -22,3 +22,4 @@ What I did not do:
 -   Choose technologies
 -   Divide anything into modules and components (didn't seem necessary here)
 -   Update anything (packages etc.)
+-   Design and style things, do UX, SEO and responsive layout
