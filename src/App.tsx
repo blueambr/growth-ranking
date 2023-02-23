@@ -156,22 +156,42 @@ const App = () => {
             <div className='results'>
                 <Container>
                     {isLoading ? (
-                        'Loading...'
+                        <span>Loading...</span>
                     ) : propertyData.length ? (
-                        <ul>
+                        <Row as='ul' xs={1} sm={2}>
                             {propertyData
                                 .filter((data) => data.Year === selectedYear)
                                 .sort((a, b) => b.growthRate - a.growthRate)
                                 .map((data) => (
-                                    <li key={data['ID State']}>
-                                        {data.State}: {selectedMeasure !== 'Population' && '$'}
-                                        {data[selectedMeasure]} (
-                                        {(data.growthRate * 100).toFixed(2)}% YoY growth)
-                                    </li>
+                                    <Col as='li' key={data['ID State']}>
+                                        <div className='state'>
+                                            <div className='state__body'>
+                                                <h2 className='state__name'>
+                                                    <strong>{data.State}</strong>
+                                                </h2>
+                                                <div className='state__growth'>
+                                                    <small>
+                                                        <em>
+                                                            {(data.growthRate * 100).toFixed(2)}%
+                                                            Growth
+                                                        </em>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div className='state__measure'>
+                                                <h3 style={{ margin: 0 }}>
+                                                    {selectedMeasure !== 'Population' && '$'}
+                                                    {data[selectedMeasure]}
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </Col>
                                 ))}
-                        </ul>
+                        </Row>
                     ) : (
-                        'Either something went wrong or we can not provide the data that far back'
+                        <span>
+                            Either something went wrong or we can not provide the data that far back
+                        </span>
                     )}
                 </Container>
             </div>

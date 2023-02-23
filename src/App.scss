@@ -7,12 +7,9 @@ body {
     height: 100%;
 }
 
-#root, .app {
+#root,
+.app {
     height: 100%;
-}
-
-.formPanel {
-    height: 20rem;
 }
 
 .header {
@@ -20,7 +17,8 @@ body {
     font-size: 3rem;
     color: #8aa5d1;
     margin-top: 3rem;
-    margin-bottom: 3rem;}
+    margin-bottom: 3rem;
+}
 
 .logo {
     width: 9rem;
@@ -30,6 +28,26 @@ body {
 }
 
 .results {
+    padding: 32px 0;
+    color: #fff;
     background-color: #8aa5d1;
-    height: calc(100% - 300px);
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 0;
+        gap: 16px 0;
+    }
+}
+
+.state {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 100%;
+    padding: 24px;
+    word-break: break-word;
+    border-radius: 15px;
+    background-color: #456dae;
 }
